@@ -4,6 +4,10 @@ import json
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
+from crewai.tools import tool
+from pathlib import Path
+import json
+from ._guardrails import validate_text_input, validate_filename, cap_tool_output
 
 
 
@@ -19,6 +23,7 @@ def _load_json_file(filename: str) -> dict:
     """
     Loads and returns JSON data from the knowledge folder.
     """
+    validate_filename(filename)
     file_path = _get_knowledge_file_path(filename)
 
     if not file_path.exists():

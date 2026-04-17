@@ -19,9 +19,9 @@ class ServiceflowAi:
     tasks_config = "config/tasks.yaml"
 
     @agent
-    def inquiry_analysis_agent(self) -> Agent:
+    def inquiry_analyst_agent(self) -> Agent:
         return Agent(
-            config=self.agents_config["inquiry_analysis_agent"],
+            config=self.agents_config["inquiry_analyst_agent"],
             verbose=True,
         )
 
@@ -47,9 +47,9 @@ class ServiceflowAi:
         )
 
     @agent
-    def profit_maximization_agent(self) -> Agent:
+    def profit_optimization_agent(self) -> Agent:
         return Agent(
-            config=self.agents_config["profit_maximization_agent"],
+            config=self.agents_config["profit_optimization_agent"],
             verbose=True,
         )
 
@@ -96,9 +96,9 @@ class ServiceflowAi:
         )
 
     @task
-    def profit_maximization_task(self) -> Task:
+    def profit_optimization_task(self) -> Task:
         return Task(
-            config=self.tasks_config["profit_maximization_task"],
+            config=self.tasks_config["profit_optimization_task"],
             output_pydantic=ProfitRecommendationOutput,
         )
 
