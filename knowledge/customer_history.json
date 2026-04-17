@@ -1,0 +1,36 @@
+{
+    "customers": {
+      "client@example.com": {
+        "repeat_customer": true,
+        "past_services": [
+          "Repair Service",
+          "Preventive Maintenance"
+        ],
+        "preferred_schedule": "weekday mornings",
+        "preferred_contact_style": "concise and professional",
+        "common_requests": [
+          "priority scheduling",
+          "follow-up summary"
+        ],
+        "notes": [
+          "Prefers email over phone calls.",
+          "Usually approves quotes quickly if timing works."
+        ]
+      },
+      "repeat.customer@example.com": {
+        "repeat_customer": true,
+        "past_services": [
+          "Standard Installation"
+        ],
+        "preferred_schedule": "late afternoons",
+        "preferred_contact_style": "friendly but direct",
+        "common_requests": [
+          "extended support"
+        ],
+        "notes": [
+          "Often asks for clarification before approving.",
+          "Values detailed quote breakdowns."
+        ]
+      }
+    }
+  }

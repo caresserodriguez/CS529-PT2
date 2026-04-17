@@ -1,0 +1,12 @@
+{
+    "schedule_capacity": {
+      "current_capacity_status": "moderate",
+      "weekday_capacity": "tight",
+      "weekend_capacity": "more_open",
+      "rush_job_capacity": "limited"
+    },
+    "notes": [
+      "Same-week requests may require schedule adjustment.",
+      "Rush jobs may need manager review before confirmation."
+    ]
+  }

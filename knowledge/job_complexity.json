@@ -1,0 +1,17 @@
+{
+    "complexity_framework": {
+      "simple": {
+        "description": "Routine work with standard requirements and low coordination burden."
+      },
+      "moderate": {
+        "description": "Work requiring some coordination, extra time, or limited specialized resources."
+      },
+      "complex": {
+        "description": "Work involving specialized resources, high coordination, time sensitivity, or significant uncertainty."
+      }
+    },
+    "notes": [
+      "Complexity affects staffing, cost, and profitability.",
+      "High-complexity jobs may need escalation or additional review."
+    ]
+  }

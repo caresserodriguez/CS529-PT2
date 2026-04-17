@@ -1,0 +1,60 @@
+{
+    "services": [
+      {
+        "service_name": "Standard Installation",
+        "category": "installation",
+        "includes": [
+          "basic setup",
+          "standard labor",
+          "functional testing"
+        ],
+        "excludes": [
+          "custom modifications",
+          "rush delivery"
+        ],
+        "common_add_ons": [
+          "expedited service",
+          "extended support"
+        ],
+        "complexity_level": "moderate",
+        "notes": "Suitable for routine installation requests."
+      },
+      {
+        "service_name": "Repair Service",
+        "category": "repair",
+        "includes": [
+          "diagnostic review",
+          "repair labor"
+        ],
+        "excludes": [
+          "replacement parts",
+          "after-hours work"
+        ],
+        "common_add_ons": [
+          "priority scheduling",
+          "follow-up inspection"
+        ],
+        "complexity_level": "variable",
+        "notes": "Final cost depends on the scope of the issue."
+      },
+      {
+        "service_name": "Preventive Maintenance",
+        "category": "maintenance",
+        "includes": [
+          "routine inspection",
+          "basic servicing",
+          "performance check"
+        ],
+        "excludes": [
+          "major repairs",
+          "specialized replacement work"
+        ],
+        "common_add_ons": [
+          "maintenance report",
+          "priority scheduling"
+        ],
+        "complexity_level": "low",
+        "notes": "Best for recurring or scheduled service clients."
+      }
+    ]
+  }

@@ -1,0 +1,133 @@
+analyze_inquiry_task:
+  description: >
+    Analyze the following customer inquiry for a small service-based business:
+
+    {customer_inquiry}
+
+    Extract the requested service type, job scope, preferred timing, urgency,
+    requested extras or special requirements, customer email if present, and any
+    missing information needed for later business decisions.   
+  expected_output: >
+    A structured inquiry analysis containing:
+    - service type
+    - job scope
+    - preferred schedule
+    - requested extras
+    - urgency
+    - customer email
+    - missing information
+  agent: inquiry_analyst_agent
+
+readiness_check_task:
+  description: >
+    Using the structured inquiry analysis, determine whether the business is
+    operationally ready to take the requested job.
+
+    Evaluate staffing availability, resource availability, tools, equipment,
+    inventory or materials, and scheduling constraints. Identify any shortages,
+    risks, or operational issues that may affect feasibility or internal cost.
+  context:
+    - analyze_inquiry_task
+  expected_output: >
+    A structured readiness report containing:
+    - staffing status
+    - resource/material status
+    - tool/equipment status
+    - scheduling feasibility
+    - readiness risks
+    - cost-impact notes
+    - overall readiness result
+  agent: readiness_check_agent
+
+costing_task:
+  description: >
+    Using the inquiry analysis and readiness report, calculate the internal cost
+    to the business for completing the requested service job.
+
+    Include labor cost, material or inventory usage cost, equipment-related
+    operational cost, and any additional burdens such as overtime, shortages,
+    expedited handling, or special resource requirements.
+  context:
+    - analyze_inquiry_task
+    - readiness_check_task
+  expected_output: >
+    A structured internal cost estimate containing:
+    - labor cost
+    - materials/resources cost
+    - equipment operational cost
+    - additional burden cost
+    - total internal cost
+    - main cost drivers
+  agent: costing_agent
+
+pricing_task:
+  description: >
+    Using the inquiry analysis, readiness findings, and internal cost estimate,
+    generate the customer-facing quote.
+
+    Determine the base customer price, add charges for extras or special service
+    requirements, apply pricing rules or markups, include approved buffers or
+    adjustments, and produce the final quoted price.
+  context:
+    - analyze_inquiry_task
+    - readiness_check_task
+    - costing_task
+  expected_output: >
+    A structured pricing result containing:
+    - base customer price
+    - extras/add-ons price total
+    - business adjustments
+    - final quoted price
+    - pricing rationale
+  agent: pricing_agent
+
+profit_optimization_task:
+  description: >
+    Review the internal cost estimate and customer-facing quote to determine
+    whether the proposed job is financially attractive for the business.
+
+    Assess margin and profitability, then recommend whether the job should be
+    accepted, revised, upsold, escalated, or declined.
+  context:
+    - costing_task
+    - pricing_task
+  expected_output: >
+    A structured business recommendation containing:
+    - recommendation status
+    - profitability assessment
+    - margin commentary
+    - suggested action
+    - rationale
+  agent: profit_optimization_agent
+
+draft_client_response_task:
+  description: >
+    Draft a professional customer-facing quote response using the inquiry analysis,
+    pricing result, and business recommendation.
+
+    Include the service summary, estimated quote, and any clarifying questions,
+    assumptions, or conditions needed before final confirmation.
+  context:
+    - analyze_inquiry_task
+    - pricing_task
+    - profit_maximization_task
+  expected_output: >
+    A polished customer-facing quote response draft.
+  agent: client_response_agent
+
+send_quote_email_task:
+  description: >
+    Human approval status: {human_approved}
+
+    Customer email: {customer_email}
+
+    If human approval is true, prepare the final approved quote for delivery and
+    return a delivery status message.
+
+    If human approval is false, do not send anything and return a status showing
+    that delivery was blocked pending approval.
+  context:
+    - draft_client_response_task
+  expected_output: >
+    A structured delivery status indicating whether the quote email was sent or blocked.
+  agent: email_agent

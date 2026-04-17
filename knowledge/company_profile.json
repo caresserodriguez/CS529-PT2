@@ -1,0 +1,30 @@
+{
+    "business_name": "Metro Service Solutions",
+    "business_type": "small service-based business",
+    "service_categories": [
+      "installation",
+      "repair",
+      "maintenance",
+      "onsite support"
+    ],
+    "standard_service_model": "appointment-based, customer-request-driven service",
+    "operating_hours": {
+      "monday_to_friday": "8:00 AM - 6:00 PM",
+      "saturday": "9:00 AM - 2:00 PM",
+      "sunday": "closed"
+    },
+    "supported_service_areas": [
+      "local city",
+      "surrounding metro area"
+    ],
+    "general_pricing_style": {
+      "model": "base rate + scope adjustments + urgency/resource surcharges",
+      "minimum_charge": 150
+    },
+    "minimum_booking_policy": "Jobs below the minimum charge require manager approval.",
+    "general_notes": [
+      "Urgent jobs may require expedited handling fees.",
+      "Complex jobs may require extra labor or specialized equipment.",
+      "Final quotes must reflect operational feasibility."
+    ]
+  }
