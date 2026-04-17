@@ -1,6 +1,5 @@
 from serviceflow_ai.crew import ServiceflowAi
 
-
 def run():
     inputs = {
         "customer_inquiry": """

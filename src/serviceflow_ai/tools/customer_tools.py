@@ -1,9 +1,7 @@
-from typing import Type
 from pathlib import Path
+from crewai.tools import tool
 import json
-
-from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from ._guardrails import validate_email_input, validate_filename, cap_tool_output
 
 
 def _get_knowledge_file_path(filename: str) -> Path:
@@ -17,6 +15,7 @@ def _load_json_file(filename: str) -> dict:
     """
     Loads and returns JSON data from the knowledge folder.
     """
+    validate_filename(filename)
     file_path = _get_knowledge_file_path(filename)
 
     if not file_path.exists():

@@ -110,7 +110,7 @@ draft_client_response_task:
   context:
     - analyze_inquiry_task
     - pricing_task
-    - profit_maximization_task
+    - profit_optimization_task
   expected_output: >
     A polished customer-facing quote response draft.
   agent: client_response_agent

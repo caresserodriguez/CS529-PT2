@@ -4,6 +4,10 @@ import json
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
+from crewai.tools import tool
+from pathlib import Path
+import json
+from ._guardrails import validate_filename, cap_tool_output
 
 
 def _get_knowledge_file_path(filename: str) -> Path:
@@ -11,13 +15,13 @@ def _get_knowledge_file_path(filename: str) -> Path:
     Returns the absolute path to a file inside the project's knowledge folder.
     """
     project_root = Path(__file__).resolve().parents[3]
-    return project_root / "knowledge" / filename
-
+    return project_root/ "knowledge" / filename
 
 def _load_json_file(filename: str) -> dict:
     """
-    Loads and returns JSON data from the knowledge folder.
+    Loads and returns JSON data from the knowledge dolfer
     """
+    validate_filename(filename)
     file_path = _get_knowledge_file_path(filename)
 
     if not file_path.exists():
