@@ -16,6 +16,11 @@ analyze_inquiry_task:
     - urgency
     - customer email
     - missing information
+    - service match status
+    - matched service
+    - match confidence
+    - unmatched elements
+    - clarification needed
   agent: inquiry_analyst_agent
 
 readiness_check_task:
