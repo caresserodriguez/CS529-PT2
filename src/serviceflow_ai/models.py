@@ -3,13 +3,54 @@ from pydantic import BaseModel, Field
 
 
 class InquiryAnalysisOutput(BaseModel):
-    service_type: str = Field(..., description="Type of service requested")
-    job_scope: str = Field(..., description="Scope or description of the requested job")
-    preferred_schedule: str = Field(..., description="Requested timing or scheduling preference")
-    requested_extras: List[str] = Field(default_factory=list, description="Requested extras or add-ons")
-    urgency: str = Field(..., description="Urgency level of the inquiry")
-    customer_email: Optional[str] = Field(default=None, description="Customer email if present")
-    missing_information: List[str] = Field(default_factory=list, description="Missing details needed later")
+    service_type: Optional[str] = Field(
+        default=None,
+        description="Type of service requested"
+    )
+    job_scope: str = Field(
+       ...,
+        description="Scope or description of the requested job"
+    )
+    preferred_schedule: Optional[str] = Field(
+        default=None,
+        description="Requested timing or scheduling preference"
+    )
+    requested_extras: List[str] = Field(
+        default_factory=list,
+        description="Requested extras, add-ons, or special requirements"
+    )
+    urgency: Optional[str] = Field(
+        default=None,
+        description="Urgency level of the inquiry"
+    )
+    customer_email: Optional[str] = Field(
+        default=None,
+        description="Customer email if present"
+    )
+    missing_information: List[str] = Field(
+        default_factory=list,
+        description="Missing details needed for later steps"
+    )
+    service_match_status: str = Field(
+        ...,
+        description='Service match result: "full_match", "partial_match", or "no_match"'
+    )
+    matched_service: Optional[str] = Field(
+        default=None,
+        description="Best matched service from the catalogue, if any"
+    )
+    match_confidence: Optional[str] = Field(
+        default=None,
+        description='Confidence level of the service match: "high", "medium", or "low"'
+    )
+    unmatched_elements: List[str] = Field(
+        default_factory=list,
+        description="Parts of the request that do not clearly match the service catalogue"
+    )
+    clarification_needed: bool = Field(
+        default=False,
+        description="Whether clarification is needed before continuing"
+    )
 
 
 class ReadinessCheckOutput(BaseModel):
@@ -51,3 +92,33 @@ class EmailDeliveryOutput(BaseModel):
     sent: bool
     status_message: str
     recipient: Optional[str] = None
+
+
+from typing import Optional
+from pydantic import BaseModel
+
+
+class QuoteReviewPackage(BaseModel):
+    customer_email: Optional[str] = None
+    service_summary: str
+    quoted_price: float
+    recommendation_status: str
+    draft_response: str
+    approval_status: str = "pending"
+    edited_response: Optional[str] = None
+    service_match_status: str
+    matched_service: Optional[str] = None
+    clarification_needed: bool = False
+
+
+class QuoteReviewPackage(BaseModel):
+    customer_email: Optional[str] = None
+    service_summary: str
+    quoted_price: float
+    recommendation_status: str
+    draft_response: str
+    approval_status: str = "pending"
+    edited_response: Optional[str] = None
+    service_match_status: str
+    matched_service: Optional[str] = None
+    clarification_needed: bool = False
