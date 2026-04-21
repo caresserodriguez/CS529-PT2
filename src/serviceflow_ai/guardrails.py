@@ -1,6 +1,10 @@
 import re
 from pathlib import Path
 
+from pypdf import PdfReader
+from dataclasses import dataclass, field
+from typing import List
+
 
 MAX_OUTPUT_CHARS = 8000
 
@@ -115,3 +119,85 @@ def validate_review_decision(
         return False, "Review decision blocked: edited response was provided but is empty."
 
     return True, "Review decision is valid."
+
+def extract_text_from_pdf(pdf_path: str) -> str:
+    reader = PdfReader(pdf_path)
+
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text()
+    return text
+
+MAX_CHARS = 50000
+
+SUSPICIOUS_PATTERNS = [
+    "ignore previous instructions",
+    "ignore all previous instructions",
+    "disregard previous instructions",
+    "system prompt",
+    "developer message",
+    "you are chatgpt",
+    "reveal the system prompt",
+    "do not tell the user",
+    "tool call",
+    "browse the web",
+    "override instructions",
+    "send secrets",
+    "api key",
+    "password",
+]
+
+
+@dataclass
+class GuardrailResult:
+    cleaned_text: str
+    was_truncated: bool
+    suspicious_patterns: List[str] = field(default_factory=list)
+    risk_score: int = 0
+    flagged: bool = False
+    reasons: List[str] = field(default_factory=list)
+
+
+
+def apply_text_guardrails(raw_text: str, max_chars: int = MAX_CHARS) -> GuardrailResult:
+    
+    
+
+    reasons = []
+
+    text = raw_text.replace("\x00", " ")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    text = text.strip()
+
+    if not text:
+        reasons.append("the text is empty after cleaning.")
+
+    was_truncated = False
+    if len(text) > max_chars:
+        text = text[:max_chars].strip()
+        was_truncated = True
+        reasons.append(f"the text was truncated to {max_chars} characters.")
+
+    lower_text = text.lower()
+    matched_patterns = [pattern for pattern in SUSPICIOUS_PATTERNS if pattern in lower_text]
+
+    risk_score = 0
+
+    if matched_patterns:
+        risk_score += len(matched_patterns)
+        reasons.append("suspicious patterns associated with possible prompt injection were detected.")
+
+    
+
+    flagged = risk_score >= 2
+
+    return GuardrailResult(
+        cleaned_text=text,
+        was_truncated=was_truncated,
+        suspicious_patterns=matched_patterns,
+        risk_score=risk_score,
+        flagged=flagged,
+        reasons=reasons,
+    )
