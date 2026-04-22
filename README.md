@@ -52,3 +52,14 @@ For support, questions, or feedback regarding the ServiceflowAi Crew or crewAI.
 - [Chat with our docs](https://chatg.pt/DWjSBZn)
 
 Let's create wonders together with the power and simplicity of crewAI.
+
+
+
+
+
+
+
+
+
+
+CrewAI shared memory is enabled on the main crew so useful context can be recalled before later tasks and persisted across runs. In this project, that memory supports things like repeat-customer context, recurring clarification patterns, and consistency in customer-facing quote responses.

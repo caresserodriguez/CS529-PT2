@@ -5,34 +5,7 @@ from serviceflow_ai.guardrails import (
     validate_review_decision,
 )
 
-def route_after_inquiry(inquiry_result: InquiryAnalysisOutput) -> str:
-    """
-    Decide what workflow path to take after inquiry analysis.
-
-    Returns one of:
-    - normal_quote_flow
-    - clarification_review_flow
-    - out_of_scope_flow
-    - manual_review_flow
-    """
-    is_valid, _ = validate_service_match_status(inquiry_result.service_match_status)
-
-    if not is_valid:
-        return "manual_review_flow"
-
-    status = inquiry_result.service_match_status
-
-    if status == "full_match":
-        return "normal_quote_flow"
-
-    if status == "partial_match":
-        return "clarification_review_flow"
-
-    if status == "no_match":
-        return "out_of_scope_flow"
-
-    return "manual_review_flow"
-
+# Safely determine whether the request should continue to normal quoting, clarification review, or out-of-scope review.
 def determine_quote_path(inquiry_result: InquiryAnalysisOutput) -> str:
     """
     Decide the safe workflow path after inquiry analysis, using guardrails.
@@ -54,6 +27,7 @@ def determine_quote_path(inquiry_result: InquiryAnalysisOutput) -> str:
 
     return "normal_quote_flow"
 
+# Build the review package that will be shown to the human reviewer before approval.
 def build_review_package(
     inquiry_result: InquiryAnalysisOutput,
     service_summary: str,
@@ -75,7 +49,7 @@ def build_review_package(
         clarification_needed=inquiry_result.clarification_needed,
     )
 
-
+# Process the human reviewer’s approval or rejection decision and prepare the final response for delivery if approved.
 def process_quote_review(
     review_package: QuoteReviewPackage,
     approved: bool,
@@ -121,6 +95,7 @@ def process_quote_review(
         "review_package": review_package.model_dump(),
     }
 
+# Build the backend response shown to the human reviewer based on the selected workflow route.
 def build_route_response(
     inquiry_result: InquiryAnalysisOutput,
     review_package: QuoteReviewPackage,
@@ -161,7 +136,7 @@ def build_route_response(
         "review_package": review_package.model_dump(),
     }
 
-
+# Prepare the full human-review stage by creating the review package and routing response after quote generation.
 def prepare_review_stage(
     inquiry_result: InquiryAnalysisOutput,
     service_summary: str,

@@ -1,12 +1,22 @@
 analyze_inquiry_task:
   description: >
-    Analyze the following customer inquiry for a small service-based business:
+    Analyze the following customer inquiry for a small service-based cleaning business:
 
     {customer_inquiry}
 
     Extract the requested service type, job scope, preferred timing, urgency,
     requested extras or special requirements, customer email if present, and any
-    missing information needed for later business decisions.   
+    missing information needed for later business decisions.
+
+    If a customer email is present in the inquiry, use the Customer History Tool
+    to look up whether this is a repeat customer. If a record exists, review their
+    past services, preferred schedule, common requests, and communication style.
+    Use this history to enrich the inquiry analysis — flag whether this is a repeat
+    customer, note any preferences that are relevant to the current request, and
+    identify any past add-ons or habits that could inform the quote (for example,
+    a customer who regularly adds an oven clean, or who prefers morning slots).
+    Include this as customer context in the structured output so downstream agents
+    can act on it.
   expected_output: >
     A structured inquiry analysis containing:
     - service type
@@ -21,6 +31,8 @@ analyze_inquiry_task:
     - match confidence
     - unmatched elements
     - clarification needed
+    - repeat customer flag (true/false)
+    - relevant past preferences and history (if repeat customer)
   agent: inquiry_analyst_agent
 
 readiness_check_task:
@@ -112,12 +124,24 @@ draft_client_response_task:
 
     Include the service summary, estimated quote, and any clarifying questions,
     assumptions, or conditions needed before final confirmation.
+
+    If the inquiry analysis identified this as a repeat customer with known history,
+    use the Customer History Tool to retrieve their full record and personalise the
+    response accordingly. Match the communication style noted in their history
+    (e.g. concise, detailed, friendly). Reference their past services naturally
+    where relevant — for example, acknowledging their regular booking or noting
+    that they previously included a particular add-on. If their history suggests
+    preferences or add-ons they have used before but have not requested this time,
+    offer them as relevant suggestions — keep this brief and non-pushy, one or two
+    lines at most. Do not invent preferences not present in the customer record.
   context:
     - analyze_inquiry_task
     - pricing_task
     - profit_optimization_task
   expected_output: >
-    A polished customer-facing quote response draft.
+    A polished, personalised customer-facing quote response draft that reflects
+    the customer's communication style and surfaces relevant past preferences
+    where applicable.
   agent: client_response_agent
 
 send_quote_email_task:

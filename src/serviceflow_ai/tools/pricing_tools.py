@@ -1,45 +1,38 @@
-from crewai.tools import tool
+from typing import Type
 from pathlib import Path
 import json
-from ._guardrails import validate_filename, cap_tool_output
+
+from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
+from serviceflow_ai.guardrails import validate_filename, cap_tool_output
 
 
-def _get_knowledge_file_path(filename: str) -> Path:
-    """
-    Returns the absolute path to a file inside the project's knowledge folder.
-    """
+def _get_uploaded_business_file_path(filename: str) -> Path:
     project_root = Path(__file__).resolve().parents[3]
-    return project_root / "knowledge" / filename
+    return project_root / "data" / "uploads" / "current_business" / filename
 
 
-def _load_json_file(filename: str) -> dict:
-    """
-    Loads and returns JSON data from the knowledge folder.
-    """
+def _load_uploaded_business_json(filename: str) -> dict:
     validate_filename(filename)
-    file_path = _get_knowledge_file_path(filename)
-
+    file_path = _get_uploaded_business_file_path(filename)
     if not file_path.exists():
-        raise FileNotFoundError(f"Knowledge file not found: {file_path}")
-
+        raise FileNotFoundError(f"Uploaded business file not found: {file_path}")
+    if file_path.stat().st_size == 0:
+        raise ValueError(f"Uploaded business file is empty: {file_path}")
     with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-# This tool gives the agent the internal business-side cost factors that may affect how
-# expensive the job is to perform.
-# It tells the agent what kinds of internal costs the business needs to think about, such
-# as labor, materials, equipment use, travel, urgency, or coordination burden.
-#
-# The Costing Agent should not invent cost drivers from scratch. This tool gives it the
-# internal cost factors the business cares about so the cost estimate is grounded in
-# business logic.
+def _load_uploaded_business_text(filename: str) -> str:
+    validate_filename(filename)
+    file_path = _get_uploaded_business_file_path(filename)
+    if not file_path.exists():
+        raise FileNotFoundError(f"Uploaded business file not found: {file_path}")
+    with open(file_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
 class InternalCostFactorsToolInput(BaseModel):
-    """
-    Input schema for InternalCostFactorsTool.
-    """
     request_context: str = Field(
         default="general",
         description="Optional context for why the internal cost factors are being requested."
@@ -57,36 +50,19 @@ class InternalCostFactorsTool(BaseTool):
 
     def _run(self, request_context: str = "general") -> str:
         try:
-            internal_cost_factors = _load_json_file("internal_cost_factors.json")
+            pricing_data = _load_uploaded_business_json("pricing_data.json")
             return json.dumps(
-                {
-                    "request_context": request_context,
-                    "internal_cost_factors": internal_cost_factors
-                },
+                {"request_context": request_context, "internal_cost_factors": pricing_data},
                 indent=2
             )
         except Exception as e:
             return json.dumps(
-                {
-                    "error": "failed_to_load_internal_cost_factors",
-                    "message": str(e)
-                },
+                {"error": "failed_to_load_internal_cost_factors", "message": str(e)},
                 indent=2
             )
 
 
-# This tool gives the agent the business's general pricing rules and pricing approach.
-# It tells the agent how the business usually turns internal cost and job scope into a
-# customer-facing price.
-#
-# The Pricing Agent needs a consistent pricing framework instead of making up the quote
-# logic each time.
-
-
 class PricingPolicyToolInput(BaseModel):
-    """
-    Input schema for PricingPolicyTool.
-    """
     request_context: str = Field(
         default="general",
         description="Optional context for why the pricing policy is being requested."
@@ -104,36 +80,19 @@ class PricingPolicyTool(BaseTool):
 
     def _run(self, request_context: str = "general") -> str:
         try:
-            pricing_policy = _load_json_file("pricing_policy.json")
+            pricing_data = _load_uploaded_business_json("pricing_data.json")
             return json.dumps(
-                {
-                    "request_context": request_context,
-                    "pricing_policy": pricing_policy
-                },
+                {"request_context": request_context, "pricing_policy": pricing_data},
                 indent=2
             )
         except Exception as e:
             return json.dumps(
-                {
-                    "error": "failed_to_load_pricing_policy",
-                    "message": str(e)
-                },
+                {"error": "failed_to_load_pricing_policy", "message": str(e)},
                 indent=2
             )
 
 
-# This tool gives the agent the business rules for what must appear in a valid quote and
-# how quotes should be presented. It tells the agent what a proper quote needs to include,
-# such as assumptions, clarifications, conditions, approval requirements, or validity rules.
-#
-# The Client Response Agent needs to know not just the price, but how the quote should be
-# structured and what business rules should appear in it.
-
-
 class QuotePolicyToolInput(BaseModel):
-    """
-    Input schema for QuotePolicyTool.
-    """
     request_context: str = Field(
         default="general",
         description="Optional context for why the quote policy is being requested."
@@ -151,36 +110,19 @@ class QuotePolicyTool(BaseTool):
 
     def _run(self, request_context: str = "general") -> str:
         try:
-            quote_policy = _load_json_file("quote_policy.json")
+            policy_text = _load_uploaded_business_text("business_policies.txt")
             return json.dumps(
-                {
-                    "request_context": request_context,
-                    "quote_policy": quote_policy
-                },
+                {"request_context": request_context, "quote_policy": policy_text},
                 indent=2
             )
         except Exception as e:
             return json.dumps(
-                {
-                    "error": "failed_to_load_quote_policy",
-                    "message": str(e)
-                },
+                {"error": "failed_to_load_quote_policy", "message": str(e)},
                 indent=2
             )
 
 
-# This tool gives the agent the business's profitability expectations. It tells the agent what
-# counts as an acceptable margin or business outcome so it can decide whether a job should be
-# accepted, revised, escalated, or declined.
-#
-# The Profit Maximization Agent needs a business standard for profitability instead of relying
-# only on vague judgement.
-
-
 class ProfitThresholdToolInput(BaseModel):
-    """
-    Input schema for ProfitThresholdTool.
-    """
     request_context: str = Field(
         default="general",
         description="Optional context for why the profitability thresholds are being requested."
@@ -198,19 +140,13 @@ class ProfitThresholdTool(BaseTool):
 
     def _run(self, request_context: str = "general") -> str:
         try:
-            profit_thresholds = _load_json_file("profit_thresholds.json")
+            pricing_data = _load_uploaded_business_json("pricing_data.json")
             return json.dumps(
-                {
-                    "request_context": request_context,
-                    "profit_thresholds": profit_thresholds
-                },
+                {"request_context": request_context, "profit_thresholds": pricing_data},
                 indent=2
             )
         except Exception as e:
             return json.dumps(
-                {
-                    "error": "failed_to_load_profit_thresholds",
-                    "message": str(e)
-                },
+                {"error": "failed_to_load_profit_thresholds", "message": str(e)},
                 indent=2
             )

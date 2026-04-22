@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from serviceflow_ai.crew import ServiceflowAi
+from serviceflow_ai.document_processor import process_business_document, DOCUMENT_TYPES
 
 # ─── Styling ──────────────────────────────────────────────────────────────────
 
@@ -497,17 +498,21 @@ def reject_quote(_: str, state: dict):
 # ─── UI layout ────────────────────────────────────────────────────────────────
 
 PLACEHOLDER_INQUIRY = (
-    "e.g. Hi, I need a quote for a standard installation at our warehouse next "
-    "Tuesday or Wednesday. The job will likely need two technicians and we have "
-    "some specialised equipment requirements. Please get back to me by Friday. "
-    "Thanks, James."
+    "e.g. Hi, I need a quote for a deep clean on my 3-bedroom house next Tuesday "
+    "or Wednesday. We haven't had a professional clean in about three months and "
+    "the oven definitely needs attention. Happy to add a carpet steam clean if the "
+    "price is reasonable. Let me know — thanks, Sarah."
 )
 
 with gr.Blocks(title="ServiceFlow AI — Quote Generator", theme=gr.themes.Soft()) as demo:
 
     gr.HTML(HEADER_HTML)
 
-    with gr.Row(equal_height=False):
+    with gr.Tabs():
+
+        # ── Tab 1: Quote Generator ────────────────────────────────────────────
+        with gr.Tab("Quote Generator"):
+            with gr.Row(equal_height=False):
 
         # ── Left: input form ──────────────────────────────────────────────────
         with gr.Column(scale=2, elem_id="form-panel"):
@@ -588,17 +593,17 @@ with gr.Blocks(title="ServiceFlow AI — Quote Generator", theme=gr.themes.Soft(
                         gr.Markdown("<h3 style='color: #000; padding-top: 10px; padding-bottom:10px; text-align:center;'>Email Delivery Status</h3>")
                         delivery_output = gr.Markdown()
 
-                with gr.Tab("🔍 Full Agent Analysis"):
-                    with gr.Accordion("1 · Inquiry Analysis", open=True):
-                        inquiry_output = gr.Markdown()
-                    with gr.Accordion("2 · Operational Readiness", open=False):
-                        readiness_output = gr.Markdown()
-                    with gr.Accordion("3 · Internal Costing", open=False):
-                        costing_output = gr.Markdown()
-                    with gr.Accordion("4 · Customer Pricing", open=False):
-                        pricing_output = gr.Markdown()
-                    with gr.Accordion("5 · Profit Optimisation", open=False):
-                        profit_output = gr.Markdown()
+                        with gr.Tab("🔍 Full Agent Analysis"):
+                            with gr.Accordion("1 · Inquiry Analysis", open=True):
+                                inquiry_output = gr.Markdown()
+                            with gr.Accordion("2 · Operational Readiness", open=False):
+                                readiness_output = gr.Markdown()
+                            with gr.Accordion("3 · Internal Costing", open=False):
+                                costing_output = gr.Markdown()
+                            with gr.Accordion("4 · Customer Pricing", open=False):
+                                pricing_output = gr.Markdown()
+                            with gr.Accordion("5 · Profit Optimisation", open=False):
+                                profit_output = gr.Markdown()
 
     hitl_draft.change(
         fn=lambda text: text,

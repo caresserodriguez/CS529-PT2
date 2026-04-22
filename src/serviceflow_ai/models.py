@@ -94,23 +94,6 @@ class EmailDeliveryOutput(BaseModel):
     recipient: Optional[str] = None
 
 
-from typing import Optional
-from pydantic import BaseModel
-
-
-class QuoteReviewPackage(BaseModel):
-    customer_email: Optional[str] = None
-    service_summary: str
-    quoted_price: float
-    recommendation_status: str
-    draft_response: str
-    approval_status: str = "pending"
-    edited_response: Optional[str] = None
-    service_match_status: str
-    matched_service: Optional[str] = None
-    clarification_needed: bool = False
-
-
 class QuoteReviewPackage(BaseModel):
     customer_email: Optional[str] = None
     service_summary: str
