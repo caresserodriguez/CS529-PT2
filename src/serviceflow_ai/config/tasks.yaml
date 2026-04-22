@@ -126,13 +126,14 @@ send_quote_email_task:
 
     Customer email: {customer_email}
 
-    If human approval is true, prepare the final approved quote for delivery and
-    return a delivery status message.
+    Approved draft email content:
+    {draft_email_content}
 
-    If human approval is false, do not send anything and return a status showing
-    that delivery was blocked pending approval.
-  context:
-    - draft_client_response_task
+    A human operator has reviewed the quote above.
+    If human_approved is true, the draft has been approved for delivery — confirm
+    dispatch and return a delivery status message.
+    If human_approved is false, the quote was rejected by the operator — do not
+    send anything and return a status showing that delivery was blocked.
   expected_output: >
     A structured delivery status indicating whether the quote email was sent or blocked.
   agent: email_agent

@@ -9,6 +9,7 @@ from serviceflow_ai.models import (
     ProfitRecommendationOutput,
     EmailDeliveryOutput,
 )
+from serviceflow_ai.tools.email_tools import SendQuoteEmailTool
 
 
 @CrewBase
@@ -64,6 +65,7 @@ class ServiceflowAi:
     def email_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["email_agent"],
+            tools=[SendQuoteEmailTool()],
             verbose=True,
         )
 
@@ -120,6 +122,38 @@ class ServiceflowAi:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
+            process=Process.sequential,
+            verbose=True,
+        )
+
+    def phase1_crew(self) -> Crew:
+        """Agents 1–6: analysis through draft generation. Pauses for human review."""
+        return Crew(
+            agents=[
+                self.inquiry_analyst_agent(),
+                self.readiness_check_agent(),
+                self.costing_agent(),
+                self.pricing_agent(),
+                self.profit_optimization_agent(),
+                self.client_response_agent(),
+            ],
+            tasks=[
+                self.analyze_inquiry_task(),
+                self.readiness_check_task(),
+                self.costing_task(),
+                self.pricing_task(),
+                self.profit_optimization_task(),
+                self.draft_client_response_task(),
+            ],
+            process=Process.sequential,
+            verbose=True,
+        )
+
+    def phase2_crew(self) -> Crew:
+        """Agent 7 only: delivers the human-approved (or rejected) quote email."""
+        return Crew(
+            agents=[self.email_agent()],
+            tasks=[self.send_quote_email_task()],
             process=Process.sequential,
             verbose=True,
         )

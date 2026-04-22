@@ -6,6 +6,9 @@ Run:  python app.py
 import gradio as gr
 import pdfplumber
 import docx
+from dotenv import load_dotenv
+load_dotenv()
+
 from serviceflow_ai.crew import ServiceflowAi
 
 # ─── Styling ──────────────────────────────────────────────────────────────────
@@ -27,7 +30,7 @@ body, .gradio-container, .main, .wrap, .panel, .block,
 
 /* ── Panels ── */
 #form-panel, #results-panel {
-    background: #ffffff !important; border-radius: 12px !important;
+    text-color:#000; background: #ffffff !important; border-radius: 12px !important;
     padding: 24px !important; box-shadow: 0 1px 6px rgba(0,0,0,0.07) !important; }
 
 /* ── All labels ── */
@@ -44,8 +47,13 @@ input:focus, textarea:focus { border-color: #1a3a6e !important; box-shadow: 0 0 
 #submit-btn:hover { background: #0f1f3d !important; }
 
 /* ── Tabs ── */
-.tab-nav button { font-weight: 600 !important; color: #64748b !important; background: transparent !important; }
-.tab-nav button.selected { color: #1a3a6e !important; border-bottom: 3px solid #1a3a6e !important; }
+.tab-nav button,
+button[role="tab"] { font-weight: 600 !important; color: #000000 !important; background: transparent !important;
+                     padding-top: 10px !important; padding-bottom: 10px !important; }
+.tab-nav button.selected,
+button[role="tab"][aria-selected="true"] { background: #1a3a6e !important; color: #ffffff !important;
+                                           border-radius: 6px 6px 0 0 !important; border-bottom: none !important;
+                                           padding-top: 10px !important; padding-bottom: 10px !important; }
 
 /* ── Markdown tables ── */
 .prose table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -80,18 +88,75 @@ input:focus, textarea:focus { border-color: #1a3a6e !important; box-shadow: 0 0 
 #upload-box .upload-container p,
 #upload-box [data-testid="upload-container"] p {
     font-size: 0.82rem !important; color: #64748b !important; margin: 2px 0 !important; }
+
+/* ── Loading spinner ── */
+@keyframes sf-spin { to { transform: rotate(360deg); } }
+.sf-spinner { width:26px; height:26px; border:3px solid rgba(148,180,217,0.25);
+              border-top-color:#94b4d9; border-radius:50%;
+              animation:sf-spin 0.75s linear infinite; flex-shrink:0; }
+
+/* ── HITL review panel ── */
+#hitl-panel { border-left: 4px solid #f59e0b !important; border-radius: 0 12px 12px 0 !important;
+              background: #fffbeb !important; margin: 12px 0 !important; padding: 4px 0 !important; }
+#hitl-draft-box textarea { font-family: 'Georgia', serif !important; font-size: 0.92rem !important;
+                           line-height: 1.65 !important; }
+#approve-btn { background: #059669 !important; border-color: #059669 !important; color: #fff !important;
+               font-weight: 700 !important; }
+#approve-btn:hover { background: #047857 !important; }
+#reject-btn  { background: #dc2626 !important; border-color: #dc2626 !important; color: #fff !important;
+               font-weight: 700 !important; }
+#reject-btn:hover  { background: #b91c1c !important; }
 """
 
 HEADER_HTML = """
 <div id="sf-header">
-  <h1>⚙️ ServiceFlow AI</h1>
-  <p>Metro Service Solutions — AI-Powered Quote Generation Engine &nbsp;·&nbsp; 7-Agent Sequential Crew</p>
+  <h1>⚙️ Buckets & Bucks AI</h1>
+  <p>Buckets & Bucks — AI-Powered Quote Generation Engine &nbsp;·&nbsp; 7-Agent Sequential Crew</p>
 </div>
 """
 
 EMPTY_SUMMARY_HTML = """
-<div style="background:#f4f6f9;border-radius:10px;padding:20px;text-align:center;color:#8a9bb0;font-size:0.9rem;">
+<div style="background:#f4f6f9;border-radius:10px;padding:20px;text-align:center;color:#8a9bb0;font-size:0.9rem; border: solid #000;">
   Submit an inquiry to see the quote summary here.
+</div>
+"""
+
+LOADING_SUMMARY_HTML = """
+<div style="background:linear-gradient(135deg,#0f1f3d,#1a3a6e);border-radius:10px;
+            padding:20px 24px;display:flex;align-items:center;gap:16px;">
+  <div class="sf-spinner"></div>
+  <div>
+    <p style="color:#ffffff;font-size:1rem;font-weight:600;margin:0;">Generating Quote&hellip;</p>
+    <p style="color:#94b4d9;font-size:0.8rem;margin:4px 0 0 0;">
+      Running 6 specialist agents &mdash; please wait 30&ndash;90 seconds
+    </p>
+  </div>
+</div>
+"""
+
+SENDING_SUMMARY_HTML = """
+<div style="background:linear-gradient(135deg,#064e3b,#065f46);border-radius:10px;
+            padding:20px 24px;display:flex;align-items:center;gap:16px;">
+  <div class="sf-spinner" style="border-top-color:#6ee7b7;"></div>
+  <div>
+    <p style="color:#ffffff;font-size:1rem;font-weight:600;margin:0;">Sending Email&hellip;</p>
+    <p style="color:#6ee7b7;font-size:0.8rem;margin:4px 0 0 0;">
+      Dispatching the approved quote to the customer
+    </p>
+  </div>
+</div>
+"""
+
+SUCCESS_SUMMARY_HTML = """
+<div style="background:linear-gradient(135deg,#064e3b,#065f46);border-radius:10px;
+            padding:20px 24px;display:flex;align-items:center;gap:16px;">
+  <div style="font-size:2rem;line-height:1;">&#10003;</div>
+  <div>
+    <p style="color:#ffffff;font-size:1.1rem;font-weight:700;margin:0;">Successful</p>
+    <p style="color:#6ee7b7;font-size:0.88rem;margin:4px 0 0 0;">
+      Quote Generated and Email Sent Successfully
+    </p>
+  </div>
 </div>
 """
 
@@ -281,16 +346,21 @@ def build_summary_card(pricing_o, profit_o, readiness_o) -> str:
 
 # ─── File upload parser ───────────────────────────────────────────────────────
 
-def parse_uploaded_file(file) -> str:
-    """Extracts plain text from a .txt, .pdf, or .docx upload and returns it."""
+def parse_uploaded_file(file):
+    """Extracts plain text from a .txt, .pdf, or .docx upload and streams status to the inquiry box."""
     if file is None:
-        return ""
+        yield ""
+        return
+
+    yield "Parsing file & extracting text…"
+
     path = file.name if hasattr(file, "name") else str(file)
     ext = path.rsplit(".", 1)[-1].lower()
     try:
         if ext == "txt":
             with open(path, "r", encoding="utf-8", errors="replace") as f:
-                return f.read().strip()
+                yield f.read().strip()
+                return
         if ext == "pdf":
             pages = []
             with pdfplumber.open(path) as pdf:
@@ -298,35 +368,49 @@ def parse_uploaded_file(file) -> str:
                     text = page.extract_text()
                     if text:
                         pages.append(text.strip())
-            return "\n\n".join(pages)
+            yield "\n\n".join(pages)
+            return
         if ext in ("docx", "doc"):
             doc = docx.Document(path)
-            return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+            yield "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+            return
     except Exception as exc:
-        return f"[Could not read file: {exc}]"
-    return ""
+        yield f"[Could not read file: {exc}]"
+        return
+    yield ""
 
 
-# ─── Crew runner ──────────────────────────────────────────────────────────────
+# ─── Crew runner — Phase 1: analysis + draft generation ──────────────────────
 
-def run_crew(inquiry: str, email: str, approved: bool, progress=gr.Progress()):
+def run_phase1(inquiry: str, email: str):
     if not inquiry.strip():
         raise gr.Error("Customer inquiry cannot be empty.")
     if not email.strip():
         raise gr.Error("Customer email cannot be empty.")
 
-    progress(0.05, desc="Initialising ServiceFlow AI crew…")
+    # ── Immediate loading feedback (streamed to UI before crew starts) ────────
+    yield (
+        gr.update(),                    # inquiry_output   — leave as-is
+        gr.update(),                    # readiness_output
+        gr.update(),                    # costing_output
+        gr.update(),                    # pricing_output
+        gr.update(),                    # profit_output
+        "Generating quote, please wait…",  # draft_output
+        gr.update(),                    # hitl_draft
+        LOADING_SUMMARY_HTML,           # summary_card — spinner card
+        gr.update(visible=False),       # hitl_section
+        gr.update(value=""),            # delivery_output — clear previous
+        None,                           # phase1_state
+        gr.update(visible=False),       # delivery_section — keep hidden
+    )
 
     inputs = {
         "customer_inquiry": inquiry.strip(),
-        "human_approved": "true" if approved else "false",
         "customer_email": email.strip(),
     }
 
     try:
-        progress(0.10, desc="7 specialist agents processing your inquiry…")
-        result = ServiceflowAi().crew().kickoff(inputs=inputs)
-        progress(0.92, desc="Formatting results…")
+        result = ServiceflowAi().phase1_crew().kickoff(inputs=inputs)
     except Exception as exc:
         raise gr.Error(f"Crew execution failed: {exc}")
 
@@ -335,18 +419,78 @@ def run_crew(inquiry: str, email: str, approved: bool, progress=gr.Progress()):
     pricing_o   = _safe(t, 3)
     profit_o    = _safe(t, 4)
     readiness_o = _safe(t, 1)
+    draft_text  = _raw(t, 5) or ""
 
-    progress(1.0, desc="Done")
+    state = {"customer_email": email.strip(), "customer_inquiry": inquiry.strip()}
 
-    return (
+    # ── Final results (streamed to UI after crew finishes) ────────────────────
+    yield (
         fmt_inquiry(_safe(t, 0)),
         fmt_readiness(readiness_o),
         fmt_costing(_safe(t, 2)),
         fmt_pricing(pricing_o),
         fmt_profit(profit_o),
-        _raw(t, 5) or "_No draft available._",
-        fmt_delivery(_safe(t, 6)),
+        draft_text,
+        draft_text,
         build_summary_card(pricing_o, profit_o, readiness_o),
+        gr.update(visible=True),
+        gr.update(value=""),
+        state,
+        gr.update(visible=False),       # delivery_section — hidden until decision
+    )
+
+
+# ─── HITL handlers — approve and reject ──────────────────────────────────────
+
+def approve_quote(draft_text: str, state: dict):
+    if not state:
+        raise gr.Error("No active quote session — please generate a quote first.")
+
+    # ── Immediate sending feedback ────────────────────────────────────────────
+    yield (
+        "_Sending email to customer…_",
+        gr.update(visible=False),
+        SENDING_SUMMARY_HTML,
+        None,                           # reset state so HITL cannot be resubmitted
+        gr.update(visible=False),       # delivery_section — still hidden while sending
+    )
+
+    inputs = {
+        "human_approved": "true",
+        "customer_email": state["customer_email"],
+        "draft_email_content": draft_text.strip(),
+    }
+
+    try:
+        result = ServiceflowAi().phase2_crew().kickoff(inputs=inputs)
+    except Exception as exc:
+        raise gr.Error(f"Email delivery failed: {exc}")
+
+    t = result.tasks_output
+    delivery = _safe(t, 0)
+
+    # ── Final delivery result ─────────────────────────────────────────────────
+    yield (
+        fmt_delivery(delivery),
+        gr.update(visible=False),
+        SUCCESS_SUMMARY_HTML if (delivery and delivery.sent) else gr.update(),
+        None,
+        gr.update(visible=True),        # delivery_section — reveal after result
+    )
+
+
+def reject_quote(_: str, state: dict):
+    if not state:
+        raise gr.Error("No active quote session — please generate a quote first.")
+
+    gr.Info("Quote rejected. No email was sent.")
+
+    yield (
+        "_Quote rejected by operator. No email was sent._",
+        gr.update(visible=False),
+        gr.update(),                    # summary_card unchanged
+        None,                           # reset state
+        gr.update(visible=True),        # delivery_section — reveal after rejection
     )
 
 
@@ -367,7 +511,7 @@ with gr.Blocks(title="ServiceFlow AI — Quote Generator", theme=gr.themes.Soft(
 
         # ── Left: input form ──────────────────────────────────────────────────
         with gr.Column(scale=2, elem_id="form-panel"):
-            gr.Markdown("### New Service Inquiry")
+            gr.Markdown("<h3 style='text-align:center; padding-top: 10px; padding-bottom: 10px; color:#000;'>New Service Inquiry</h3>")
 
             inquiry_input = gr.Textbox(
                 label="Customer Inquiry",
@@ -387,38 +531,62 @@ with gr.Blocks(title="ServiceFlow AI — Quote Generator", theme=gr.themes.Soft(
                 placeholder="customer@example.com",
                 lines=1,
             )
-            approved_cb = gr.Checkbox(
-                label="Approve email send to customer",
-                value=False,
-                info="Check this to authorise the email agent to dispatch the quote.",
-            )
             submit_btn = gr.Button(
                 "⚡  Generate Quote",
                 variant="primary",
                 elem_id="submit-btn",
             )
             gr.Markdown(
-                "<br><small style='color:#8a9bb0;'>The crew runs 7 specialist agents "
-                "sequentially. Allow 30–90 seconds depending on inquiry complexity.</small>"
+                "<br><small style='color:#8a9bb0;'>Runs 6 analysis agents then pauses "
+                "for your review before sending. Allow 30–90 seconds.</small>"
             )
 
         # ── Right: results ────────────────────────────────────────────────────
         with gr.Column(scale=3, elem_id="results-panel"):
-            gr.Markdown("### Results")
+            gr.Markdown("<h3 style='color:#000000; padding-top:10px; padding-bottom:10px; text-align:center;'>Here's What I Think</h3>")
             summary_card = gr.HTML(value=EMPTY_SUMMARY_HTML)
+
+            # ── HITL review panel (hidden until Phase 1 completes) ────────────
+            phase1_state = gr.State(None)
+            with gr.Group(elem_id="hitl-panel", visible=False) as hitl_section:
+                gr.HTML("""
+                <div style="padding:14px 18px 6px 18px;">
+                  <strong style="color:#92400e;font-size:1.05rem;">⏸ Human Review Required</strong>
+                  <p style="color:#78350f;margin:6px 0 0 0;font-size:0.88rem;">
+                    Review the draft quote email below. Edit it if needed, then
+                    <strong>Approve &amp; Send</strong> to dispatch to the customer,
+                    or <strong>Reject</strong> to cancel delivery entirely.
+                  </p>
+                </div>
+                """)
+                hitl_draft = gr.Textbox(
+                    label="Draft Quote Email (editable)",
+                    lines=12,
+                    interactive=True,
+                    elem_id="hitl-draft-box",
+                )
+                with gr.Row():
+                    approve_btn = gr.Button(
+                        "✅  Approve & Send", elem_id="approve-btn", scale=2
+                    )
+                    reject_btn = gr.Button(
+                        "❌  Reject", elem_id="reject-btn", scale=1
+                    )
 
             with gr.Tabs():
 
                 with gr.Tab("📄 Quote & Recommendation"):
-                    gr.Markdown("#### Draft Quote Email")
+                    gr.Markdown("<h3 style='color: #000; padding-top: 10px; padding-bottom:10px; text-align:center;'>Draft Quote Email</h3>")
                     draft_output = gr.Textbox(
-                        label="",
+                        label=None,
+                        show_label=False,
                         lines=14,
                         interactive=False,
                         elem_id="draft-box",
                     )
-                    gr.Markdown("#### Email Delivery Status")
-                    delivery_output = gr.Markdown()
+                    with gr.Column(visible=False) as delivery_section:
+                        gr.Markdown("<h3 style='color: #000; padding-top: 10px; padding-bottom:10px; text-align:center;'>Email Delivery Status</h3>")
+                        delivery_output = gr.Markdown()
 
                 with gr.Tab("🔍 Full Agent Analysis"):
                     with gr.Accordion("1 · Inquiry Analysis", open=True):
@@ -432,15 +600,22 @@ with gr.Blocks(title="ServiceFlow AI — Quote Generator", theme=gr.themes.Soft(
                     with gr.Accordion("5 · Profit Optimisation", open=False):
                         profit_output = gr.Markdown()
 
+    hitl_draft.change(
+        fn=lambda text: text,
+        inputs=[hitl_draft],
+        outputs=[draft_output],
+    )
+
     file_upload.change(
         fn=parse_uploaded_file,
         inputs=[file_upload],
         outputs=[inquiry_input],
     )
 
+    # Phase 1: analysis + draft — reveals HITL panel on completion
     submit_btn.click(
-        fn=run_crew,
-        inputs=[inquiry_input, email_input, approved_cb],
+        fn=run_phase1,
+        inputs=[inquiry_input, email_input],
         outputs=[
             inquiry_output,
             readiness_output,
@@ -448,9 +623,27 @@ with gr.Blocks(title="ServiceFlow AI — Quote Generator", theme=gr.themes.Soft(
             pricing_output,
             profit_output,
             draft_output,
-            delivery_output,
+            hitl_draft,
             summary_card,
+            hitl_section,
+            delivery_output,
+            phase1_state,
+            delivery_section,
         ],
+    )
+
+    # HITL: approve — shows "Sending…" immediately, then dispatches via crew
+    approve_btn.click(
+        fn=approve_quote,
+        inputs=[hitl_draft, phase1_state],
+        outputs=[delivery_output, hitl_section, summary_card, phase1_state, delivery_section],
+    )
+
+    # HITL: reject — shows rejection message immediately, no crew call needed
+    reject_btn.click(
+        fn=reject_quote,
+        inputs=[hitl_draft, phase1_state],
+        outputs=[delivery_output, hitl_section, summary_card, phase1_state, delivery_section],
     )
 
 
