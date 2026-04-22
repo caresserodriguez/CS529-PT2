@@ -1,6 +1,22 @@
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, Memory
 from crewai.project import CrewBase, agent, crew, task
+from crewai.mcp import MCPServerStdio
 
+from serviceflow_ai.tools.customer_tools import CustomerHistoryTool
+from serviceflow_ai.tools.business_context_tools import ServiceCatalogueTool
+from serviceflow_ai.tools.operations_tools import (
+    TravelServiceAreaTool,
+    RiskFlaggingTool,
+    JobComplexityTool,
+    EquipmentReadinessTool,
+    ResourceAvailabilityTool,
+)
+from serviceflow_ai.tools.pricing_tools import (
+    InternalCostFactorsTool,
+    PricingPolicyTool,
+    QuotePolicyTool,
+    ProfitThresholdTool,
+)
 from serviceflow_ai.models import (
     InquiryAnalysisOutput,
     ReadinessCheckOutput,
@@ -11,18 +27,31 @@ from serviceflow_ai.models import (
 )
 from serviceflow_ai.tools.email_tools import SendQuoteEmailTool
 
+crew_memory = Memory(
+    semantic_weight=0.4,
+    recency_weight=0.4,
+    importance_weight=0.2,
+    recency_half_life_days=14,
+)
+
+business_mcp_server = MCPServerStdio(
+    command="python",
+    args=["mcp_business_server.py"],
+)
+
 
 @CrewBase
 class ServiceflowAi:
-    """ServiceFlow AI crew"""
-
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
 
     @agent
     def inquiry_analyst_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["inquiry_analyst_agent"],
+            tools=[
+                CustomerHistoryTool(),
+                ServiceCatalogueTool(),
+            ],
+            mcps=[business_mcp_server],
             verbose=True,
         )
 
@@ -30,6 +59,14 @@ class ServiceflowAi:
     def readiness_check_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["readiness_check_agent"],
+            tools=[
+                TravelServiceAreaTool(),
+                RiskFlaggingTool(),
+                JobComplexityTool(),
+                EquipmentReadinessTool(),
+                ResourceAvailabilityTool(),
+            ],
+            mcps=[business_mcp_server],
             verbose=True,
         )
 
@@ -37,6 +74,14 @@ class ServiceflowAi:
     def costing_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["costing_agent"],
+            tools=[
+                InternalCostFactorsTool(),
+                JobComplexityTool(),
+                RiskFlaggingTool(),
+                EquipmentReadinessTool(),
+                ResourceAvailabilityTool(),
+            ],
+            mcps=[business_mcp_server],
             verbose=True,
         )
 
@@ -44,6 +89,11 @@ class ServiceflowAi:
     def pricing_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["pricing_agent"],
+            tools=[
+                PricingPolicyTool(),
+                QuotePolicyTool(),
+            ],
+            mcps=[business_mcp_server],
             verbose=True,
         )
 
@@ -51,6 +101,11 @@ class ServiceflowAi:
     def profit_optimization_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["profit_optimization_agent"],
+            tools=[
+                ProfitThresholdTool(),
+                RiskFlaggingTool(),
+            ],
+            mcps=[business_mcp_server],
             verbose=True,
         )
 
@@ -58,6 +113,11 @@ class ServiceflowAi:
     def client_response_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["client_response_agent"],
+            tools=[
+                QuotePolicyTool(),
+                CustomerHistoryTool(),
+            ],
+            mcps=[business_mcp_server],
             verbose=True,
         )
 
@@ -65,7 +125,7 @@ class ServiceflowAi:
     def email_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["email_agent"],
-            tools=[SendQuoteEmailTool()],
+            tools=[],
             verbose=True,
         )
 
@@ -106,9 +166,7 @@ class ServiceflowAi:
 
     @task
     def draft_client_response_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["draft_client_response_task"],
-        )
+        return Task(config=self.tasks_config["draft_client_response_task"])
 
     @task
     def send_quote_email_task(self) -> Task:
@@ -123,6 +181,7 @@ class ServiceflowAi:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
+            memory=crew_memory,
             verbose=True,
         )
 
