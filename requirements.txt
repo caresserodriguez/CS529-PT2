@@ -1,0 +1,6 @@
+openai
+gradio
+crewai
+python-dotenv
+pydantic
+requests

@@ -266,6 +266,14 @@ CREATE TABLE IF NOT EXISTS resource_notes (
     note    TEXT
 );
 
+-- USERS (app authentication)
+CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT UNIQUE NOT NULL COLLATE NOCASE,
+    password_hash TEXT NOT NULL,
+    created_at    TEXT DEFAULT (datetime('now'))
+);
+
 -- CUSTOMERS
 CREATE TABLE IF NOT EXISTS customers (
     id                      INTEGER PRIMARY KEY,

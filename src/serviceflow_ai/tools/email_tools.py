@@ -6,7 +6,7 @@ from sendgrid.helpers.mail import Content, Email, Mail, To
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
-from serviceflow_ai.tools._guardrails import validate_email_input
+from serviceflow_ai.guardrails import validate_email_input
 
 # Sender address — override with SERVICEFLOW_FROM_EMAIL env var if needed
 FROM_EMAIL = os.environ.get("SERVICEFLOW_FROM_EMAIL", "jmetz@miu.edu")

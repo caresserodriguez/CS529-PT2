@@ -125,7 +125,7 @@ class ServiceflowAi:
     def email_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["email_agent"],
-            tools=[],
+            tools=[SendQuoteEmailTool()],
             verbose=True,
         )
 

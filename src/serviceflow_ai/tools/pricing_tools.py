@@ -1,5 +1,4 @@
 from typing import Type
-from pathlib import Path
 import json
 
 from crewai.tools import BaseTool
@@ -7,14 +6,10 @@ from pydantic import BaseModel, Field
 from serviceflow_ai.guardrails import validate_filename, cap_tool_output
 
 
-def _get_uploaded_business_file_path(filename: str) -> Path:
-    project_root = Path(__file__).resolve().parents[3]
-    return project_root / "data" / "uploads" / "current_business" / filename
-
-
 def _load_uploaded_business_json(filename: str) -> dict:
+    from serviceflow_ai.tools.tool_utils import get_business_file_path
     validate_filename(filename)
-    file_path = _get_uploaded_business_file_path(filename)
+    file_path = get_business_file_path(filename)
     if not file_path.exists():
         raise FileNotFoundError(f"Uploaded business file not found: {file_path}")
     if file_path.stat().st_size == 0:
@@ -24,8 +19,9 @@ def _load_uploaded_business_json(filename: str) -> dict:
 
 
 def _load_uploaded_business_text(filename: str) -> str:
+    from serviceflow_ai.tools.tool_utils import get_business_file_path
     validate_filename(filename)
-    file_path = _get_uploaded_business_file_path(filename)
+    file_path = get_business_file_path(filename)
     if not file_path.exists():
         raise FileNotFoundError(f"Uploaded business file not found: {file_path}")
     with open(file_path, "r", encoding="utf-8") as f:
