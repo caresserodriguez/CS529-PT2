@@ -7,7 +7,8 @@ requires-python = ">=3.10,<3.14"
 dependencies = [
     "crewai[tools]==1.14.1",
     "gradio>=4.0.0",
-    "sendgrid>=6.11.0"
+    "sendgrid>=6.11.0",
+    "pypdf>=4.0.0"
 ]
 
 [project.scripts]

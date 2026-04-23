@@ -8,13 +8,13 @@ import json
 import sqlite3
 from pathlib import Path
 
-import anthropic
+from openai import OpenAI
 import docx
 import pdfplumber
 
 DB_PATH = Path(__file__).resolve().parents[2] / "data" / "serviceflow.db"
 
-_client = anthropic.Anthropic()
+_client = OpenAI()
 
 # ─── Extraction prompts ───────────────────────────────────────────────────────
 
@@ -161,12 +161,12 @@ def _read_file(file) -> str:
     return ""
 
 
-# ─── Claude extraction ────────────────────────────────────────────────────────
+# ─── OpenAI extraction ───────────────────────────────────────────────────────
 
 def _extract(document_text: str, document_type: str) -> dict:
     prompt = _PROMPTS[document_type]
-    message = _client.messages.create(
-        model="claude-sonnet-4-6",
+    response = _client.chat.completions.create(
+        model="gpt-4o",
         max_tokens=4096,
         messages=[
             {
@@ -175,7 +175,7 @@ def _extract(document_text: str, document_type: str) -> dict:
             }
         ],
     )
-    raw = message.content[0].text.strip()
+    raw = response.choices[0].message.content.strip()
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
